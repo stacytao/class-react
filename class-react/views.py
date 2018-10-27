@@ -6,6 +6,8 @@ from . import util
 from .model import *
 bp = Blueprint("views", __name__)
 
+TEXT = util.get_TEXT()
+EMOJIS = util.get_EMOJIS()
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -28,33 +30,27 @@ def login_required(f):
 
 @bp.route("/")
 def index():
-    text = {
-        "thumbsUp": "👍 Like/Yes",
-        "thumbsDown": "👎 Dislike/No",
-        "slowDown": "🐢 Slow Down",
-        "volume": "📣 Speak Louder",
-        "confused": "❓ Confused",
-        "hand": "👋 Raised Hand"
-    }
     values = {
-        "thumbsUp": History.query.filter_by(message="👍").count(),
-        "thumbsDown": History.query.filter_by(message="👎").count(),
-        "slowDown": History.query.filter_by(message="🐢").count(),
-        "volume": History.query.filter_by(message="📣").count(),
-        "confused": History.query.filter_by(message="❓").count(),
-        "hand": History.query.filter_by(message="👋").count()
+        "thumbsUp": 0,
+        "thumbsDown": 0,
+        "slowDown": 0,
+        "volume": 0,
+        "confused": 0,
+        "hand": 0
     }
 
-    total = 0
     most_popular = []
     count = 0
-    for k, v in values.items():
-        if v > count:
-            count = v
-            most_popular = [text[k]]
-        elif v == count:
-            most_popular.append(text[k])
-        total += v
+    for user in User.query.all():
+        active_reaction = user.active_reaction
+        if active_reaction and active_reaction.message != "🚫":
+            emoji = active_reaction.message
+            values[EMOJIS[emoji]] += 1
+            if values[EMOJIS[emoji]] > count:
+                count = values[EMOJIS[emoji]]
+                most_popular = [TEXT[EMOJIS[emoji]]]
+            elif values[EMOJIS[emoji]] == count:
+                most_popular.append(TEXT[EMOJIS[emoji]])
     if count == 0:
         most_popular = ["🚫 None"]
 
@@ -140,5 +136,9 @@ def logout():
 @bp.route("/react")
 @login_required
 def profile():
+    active_reaction = User.query.filter_by(user_id=session.get("user_id")).first().active_reaction
+    reaction = "🚫 None"
+    if active_reaction:
+        reaction = TEXT[EMOJIS[active_reaction.message]]
     msgs = History.query.filter_by(author_id=session.get("user_id")).order_by(desc(History.timestamp)).limit(5).all()
-    return render_template("home/profile.html", messages=msgs)
+    return render_template("home/profile.html", messages=msgs, reaction=reaction)

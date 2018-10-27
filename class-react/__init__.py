@@ -36,15 +36,20 @@ socketio = SocketIO(app)
 def handleMessage(msg):
     datetime = util.get_timestamp(msg[3])
     message = History(message=msg[0], author_name=msg[1], author_id=msg[2], timestamp=datetime)
-    
     db.session.add(message)
+    user = User.query.filter_by(user_id=message.author_id).first()
+    old_message = None
+    if user.active_reaction:
+        old_message = user.active_reaction.message
+    user.active_reaction = message
     db.session.commit()
 
     msg = {
         "message": message.message,
         "author_name": message.author_name,
         "author_id": message.author_id,
-        "timestamp": str(message.timestamp)
+        "timestamp": str(message.timestamp),
+        "old_message": old_message
     }
 
     send(msg, broadcast=True)

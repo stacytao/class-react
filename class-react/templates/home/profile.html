@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="../../static/index.css">
 {% endblock %}
 
-{% block title %}My Reactions{{super()}}{% endblock %}
+{% block title %}My Reactions{% endblock %}
 
 {% block content %}
     {% block maintext %}
@@ -23,13 +23,17 @@
         })
 
         socket.on("message", function(msg) {
-            let messages = $("#messages");
-            messages.children().last().remove();
-            messages.prepend(`<li class="list-group-item d-flex justify-content-between align-items-center" style="max-width: 20rem;">
-                    <b>`+msg.timestamp+`</b>
-                    <span class="badge badge-pill">`+msg.message+`</span>
-                </li>`
-            );
+            if (msg.author_id == {{session.user_id}}) {
+                let messages = $("#messages");
+                if (messages.children().length === 5) {
+                    messages.children().last().remove();
+                }
+                messages.prepend(`<li class="list-group-item d-flex justify-content-between align-items-center" style="max-width: 20rem;">
+                        <b>`+msg.timestamp+`</b>
+                        <span class="badge badge-pill">`+msg.message+`</span>
+                    </li>`
+                );
+            }
         })
 
         $("#noneButton").on("click", function() {
@@ -124,7 +128,7 @@
 
     <br>
 
-    <h2>Current Reaction: <span id="currentReaction">🚫 None</span></h2>
+    <h2>Current Reaction: <span id="currentReaction">{{ reaction }}</span></h2>
 
     <br>
 

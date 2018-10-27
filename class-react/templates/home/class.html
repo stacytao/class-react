@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="../../static/index.css">
 {% endblock %}
 
-{% block title %}Class Reactions{{super()}}{% endblock %}
+{% block title %}Class Reactions{% endblock %}
 
 {% block content %}
     {% block maintext %}
@@ -22,7 +22,17 @@
             // console.log("User has connected.");
         })
 
-        const reactions = {
+        const TEXT = {
+            "none": "🚫 None",
+            "thumbsUp": "👍 Like/Yes",
+            "thumbsDown": "👎 Dislike/No",
+            "slowDown": "🐢 Slow Down",
+            "volume": "📣 Speak Louder",
+            "confused": "❓ Confused",
+            "hand": "👋 Raised Hand"
+        };
+
+        const EMOJIS = {
             "👍": "thumbsUp",
             "👎": "thumbsDown",
             "🐢": "slowDown",
@@ -32,12 +42,43 @@
         };
 
         socket.on("message", function(msg) {
-            let reaction = reactions[msg.message];
-            console.log(reaction);
-            count = parseInt($("#" + reaction + "Count").text()) + 1;
-            $("#" + reaction + "Count").text("" + count);
-        })
+            let most_popular = "";
+            let count = 0;
+            let newReaction = EMOJIS[msg.message];
+            let increaseCount = parseInt($("#" + newReaction + "Count").text()) + 1;
+            $("#" + newReaction + "Count").text("" + increaseCount);
 
+            let oldMessage = msg.old_message;
+            if (EMOJIS.hasOwnProperty(oldMessage)) {
+                let oldReaction = EMOJIS[oldMessage];
+                let decreaseCount = parseInt($("#" + oldReaction + "Count").text()) - 1;
+                $("#" + oldReaction + "Count").text("" + decreaseCount);
+            }
+
+            let values = {
+                "thumbsUp": 0,
+                "thumbsDown": 0,
+                "slowDown": 0,
+                "volume": 0,
+                "confused": 0,
+                "hand": 0
+            }
+
+            Object.keys(values).forEach(function(reaction) {
+                let value = parseInt($("#" + reaction + "Count").text())
+                values[reaction] = value;
+                if (value > count) {
+                    count = value;
+                    most_popular = TEXT[reaction];
+                } else {
+                    if (value == count) {
+                        most_popular += ", "+TEXT[reaction];
+                    }
+                }
+            })
+
+            $("#popularReaction").text(most_popular);
+        })
     })
     </script>  
 
@@ -52,12 +93,6 @@
 
     <br>
 
-    <h2>Most Popular Reaction: <span id="popularReaction">{% for reaction in popular %}
-        {% if loop.nextitem is defined %}
-            {{reaction}}, 
-        {% else %}
-            {{reaction}}
-        {% endif %}
-    {% endfor %}</span></h2>
+    <h2>Most Popular Reaction: <span id="popularReaction">{% for reaction in popular %}{% if loop.nextitem is defined %}{{reaction}}, {% else %}{{reaction}}{% endif %}{% endfor %}</span></h2>
 
 {% endblock %}
