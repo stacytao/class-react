@@ -1,0 +1,63 @@
+{% extends "home/layout.html" %}
+
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="../../static/index.css">
+{% endblock %}
+
+{% block title %}Class Reactions{{super()}}{% endblock %}
+
+{% block content %}
+    {% block maintext %}
+    <h1>Class Reactions</h1>
+    <p>real-time anonymous lecture feedback</p>
+    {% endblock %}
+
+    <br>  
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var socket = io.connect("http://127.0.0.1:5000");
+        socket.on("connect", function() {
+            // console.log("User has connected.");
+        })
+
+        const reactions = {
+            "👍": "thumbsUp",
+            "👎": "thumbsDown",
+            "🐢": "slowDown",
+            "📣": "volume",
+            "❓": "confused",
+            "👋": "hand"
+        };
+
+        socket.on("message", function(msg) {
+            let reaction = reactions[msg.message];
+            console.log(reaction);
+            count = parseInt($("#" + reaction + "Count").text()) + 1;
+            $("#" + reaction + "Count").text("" + count);
+        })
+
+    })
+    </script>  
+
+    <div class="form-group">
+        <button class="btn btn-secondary reaction-bubble" id="thumbsUpBubble"><span id="thumbsUpCount">{{values.thumbsUp}}</span> 👍</button>
+        <button class="btn btn-secondary reaction-bubble" id="thumbsDownBubble"><span id="thumbsDownCount">{{values.thumbsDown}}</span> 👎</button>
+        <button class="btn btn-secondary reaction-bubble" id="slowDownBubble"><span id="slowDownCount">{{values.slowDown}}</span> 🐢</button>
+        <button class="btn btn-secondary reaction-bubble" id="volumeBubble"><span id="volumeCount">{{values.volume}}</span> 📣</button>
+        <button class="btn btn-secondary reaction-bubble" id="confusedBubble"><span id="confusedCount">{{values.confused}}</span> ❓</button>
+        <button class="btn btn-secondary reaction-bubble" id="handBubble"><span id="handCount">{{values.hand}}</span> 👋</button>
+    </div>
+
+    <br>
+
+    <h2>Most Popular Reaction: <span id="popularReaction">{% for reaction in popular %}
+        {% if loop.nextitem is defined %}
+            {{reaction}}, 
+        {% else %}
+            {{reaction}}
+        {% endif %}
+    {% endfor %}</span></h2>
+
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "home/layout.html" %}
+
+{% block title %}{{name}}{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col">
+            <h1> {{name}} </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <ul id="messages">
+            {% for msg in messages %}
+                <div class="card text-white bg-primary mb-3" style="max-width: 20rem;">
+                    <div class="card-header">{{ msg.author_name }}</div>
+                    <div class="card-body">
+                        <p class="card-text">{{ msg.message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+{% endblock %}

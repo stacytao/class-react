@@ -1,0 +1,140 @@
+{% extends "home/layout.html" %}
+
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" href="../../static/index.css">
+{% endblock %}
+
+{% block title %}My Reactions{{super()}}{% endblock %}
+
+{% block content %}
+    {% block maintext %}
+    <h1>My Reactions</h1>
+    <p>real-time anonymous lecture feedback</p>
+    {% endblock %}
+
+    <br>  
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        var socket = io.connect("http://127.0.0.1:5000");
+        socket.on("connect", function() {
+            // console.log("User has connected.");
+        })
+
+        socket.on("message", function(msg) {
+            let messages = $("#messages");
+            messages.children().last().remove();
+            messages.prepend(`<li class="list-group-item d-flex justify-content-between align-items-center" style="max-width: 20rem;">
+                    <b>`+msg.timestamp+`</b>
+                    <span class="badge badge-pill">`+msg.message+`</span>
+                </li>`
+            );
+        })
+
+        $("#noneButton").on("click", function() {
+            let message = [
+                $("#noneButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("🚫 None");
+        })
+
+        $("#thumbsUpButton").on("click", function() {
+            let message = [
+                $("#thumbsUpButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("👍 Like/Yes");
+        })
+
+        $("#thumbsDownButton").on("click", function() {
+            let message = [
+                $("#thumbsDownButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("👎 Dislike/No");
+        })
+
+        $("#slowDownButton").on("click", function() {
+            let message = [
+                $("#slowDownButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("🐢 Slow Down");
+        })
+
+        $("#volumeButton").on("click", function() {
+            let message = [
+                $("#volumeButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("📣 Speak Louder");
+        })
+
+        $("#confusedButton").on("click", function() {
+            let message = [
+                $("#confusedButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("❓ Confused");
+        })
+
+        $("#handButton").on("click", function() {
+            let message = [
+                $("#handButton").text(),
+                "{{session.user_name}}",
+                {{session.user_id}},
+                $.now()/1000|0
+            ];
+            socket.send(message);
+            $("#currentReaction").text("👋 Raised Hand");
+        })
+
+    })
+    </script>  
+
+    <div class="form-group">
+        <button class="btn btn-secondary reaction-button" id="noneButton">🚫</button>
+        <button class="btn btn-secondary reaction-button" id="thumbsUpButton">👍</button>
+        <button class="btn btn-secondary reaction-button" id="thumbsDownButton">👎</button>
+        <button class="btn btn-secondary reaction-button" id="slowDownButton">🐢</button>
+        <button class="btn btn-secondary reaction-button" id="volumeButton">📣</button>
+        <button class="btn btn-secondary reaction-button" id="confusedButton">❓</button>
+        <button class="btn btn-secondary reaction-button" id="handButton">👋</button>
+    </div>
+
+    <br>
+
+    <h2>Current Reaction: <span id="currentReaction">🚫 None</span></h2>
+
+    <br>
+
+    <ul class="list-group" id="messages">
+    {% for msg in messages %}
+        <li class="list-group-item d-flex justify-content-between align-items-center" style="max-width: 20rem;">
+            <b>{{ msg.timestamp }}</b>
+            <span class="badge badge-pill">{{ msg.message }}</span>
+        </li>
+    {% endfor %}
+    </ul>
+
+{% endblock %}
